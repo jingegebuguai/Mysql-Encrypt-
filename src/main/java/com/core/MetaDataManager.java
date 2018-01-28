@@ -173,7 +173,6 @@ public class MetaDataManager {
             Statement stmt = conn.createStatement();
             Key metaKey = KeyManager.generateDETKey("123456", "metadata", "det");
             ResultSet rs = stmt.executeQuery("select * from metadata where tablename = '" + tableName + "';");
-            // ���Ա���������Ԫ������Ϣ��
             while (rs.next()) {
                 String columnName = new String(DETAlgorithm.decrypt(rs.getString("columnname"), metaKey));
                 dataTypeMeta.put(columnName, new String(DETAlgorithm.decrypt(rs.getString("datatype"), metaKey)));

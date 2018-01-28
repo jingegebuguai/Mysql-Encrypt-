@@ -31,6 +31,46 @@ public class ClientDemo {
     public static List<String> tableNameList = new ArrayList<String>();
     public static List<String> encColumnNameList = new ArrayList<String>();
 
+    public static void createTable(Statement statement, Connection conn) {
+        long start = System.currentTimeMillis();
+        CreateTable createTable = (CreateTable) statement;
+        CreateTableDeparserSSDB.handler(createTable, conn);
+        long end = System.currentTimeMillis();
+        System.out.println("CreateTime:" + (end - start));
+    }
+
+    public static void insertTable(Statement statement, Connection conn) {
+        long startInsert = System.currentTimeMillis();
+        Insert insert = (Insert) statement;
+        InsertDeparserSSDB.handler(insert, conn);
+        long endInsert = System.currentTimeMillis();
+        System.out.println("InsertTime:" + (endInsert - startInsert));
+    }
+
+    public static void selectTable(Statement statement, Connection conn) {
+        long startSelect = System.currentTimeMillis();
+        Select select = (Select) statement;
+        SelectSQLRewrite.handler(select, conn);
+        long endSelect = System.currentTimeMillis();
+        System.out.println("SelectTime:" + (endSelect - startSelect));
+    }
+
+    public static void deleteTable(Statement statement, Connection conn) {
+        long startDelete = System.currentTimeMillis();
+        Delete delete = (Delete) statement;
+        DeleteDeparserSSDB.handler(delete, conn);
+        long endDelete = System.currentTimeMillis();
+        System.out.println("DeleteTime:" + (endDelete - startDelete));
+    }
+
+    public static void updateTable(Statement statement, Connection conn) {
+        long startUpdate = System.currentTimeMillis();
+        Update update = (Update) statement;
+        UpdateDeparserSSDB.handler(update, conn);
+        long endUpdate = System.currentTimeMillis();
+        System.out.println("UpdateTime:" + (endUpdate - startUpdate));
+    }
+
     public static void main(String[] args) throws InterruptedException, SQLException {
         // TODO Auto-generated method stub
         try {
@@ -43,39 +83,19 @@ public class ClientDemo {
                     CCJSqlParserManager parserManager = new CCJSqlParserManager();
                     Statement statement = parserManager.parse(new StringReader(inputSQL));
                     if (statement instanceof CreateTable) {
-                        long start = System.currentTimeMillis();
-                        CreateTable createTable = (CreateTable) statement;
-                        CreateTableDeparserSSDB.handler(createTable, conn);
-                        long end = System.currentTimeMillis();
-                        System.out.println("CreateTime:" + (end - start));
+                        createTable(statement, conn);
                     } else {
                         if (statement instanceof Insert) {
-                            long startInsert = System.currentTimeMillis();
-                            Insert insert = (Insert) statement;
-                            InsertDeparserSSDB.handler(insert, conn);
-                            long endInsert = System.currentTimeMillis();
-                            System.out.println("InsertTime:" + (endInsert - startInsert));
+                            insertTable(statement, conn);
                         } else {
                             if (statement instanceof Select) {
-                                long startSelect = System.currentTimeMillis();
-                                Select select = (Select) statement;
-                                SelectSQLRewrite.handler(select, conn);
-                                long endSelect = System.currentTimeMillis();
-                                System.out.println("SelectTime:" + (endSelect - startSelect));
+                                selectTable(statement, conn);
                             } else {
                                 if (statement instanceof Delete) {
-                                    long startDelete = System.currentTimeMillis();
-                                    Delete delete = (Delete) statement;
-                                    DeleteDeparserSSDB.handler(delete, conn);
-                                    long endDelete = System.currentTimeMillis();
-                                    System.out.println("DeleteTime:" + (endDelete - startDelete));
+                                    deleteTable(statement, conn);
                                 } else {
                                     if (statement instanceof Update) {
-                                        long startUpdate = System.currentTimeMillis();
-                                        Update update = (Update) statement;
-                                        UpdateDeparserSSDB.handler(update, conn);
-                                        long endUpdate = System.currentTimeMillis();
-                                        System.out.println("UpdateTime:" + (endUpdate - startUpdate));
+                                       updateTable(statement, conn);
                                     } else {
                                         System.out.println("不支持的语句类型");
                                         return;

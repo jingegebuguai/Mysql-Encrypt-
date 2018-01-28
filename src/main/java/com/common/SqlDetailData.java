@@ -3,6 +3,7 @@ package com.common;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.File;
 import java.io.IOException;
 import java.sql.Connection;
 import java.sql.SQLException;
@@ -47,20 +48,34 @@ public class SqlDetailData {
     /**
      * 导出sql数据
      */
-    public static void exportData() {
+    public static void exportData() throws SQLException {
 
         Connection conn = ConnectionMySQL.openConnection();
         StringBuffer command = new StringBuffer();
         command = command.append("SELECT * FROM ").append(TABLENAME).append(" INTO OUTFILE ").append("'").append(EXPORTPATH).append("'");
         String sqlCommand = command.toString();
+        File file = new File(EXPORTPATH);
+        if(file.exists()) {
+            file.delete();
+            execute(conn, sqlCommand);
+        } else {
+            execute(conn, sqlCommand);
+        }
+        conn.close();
+    }
+
+    private static void execute(Connection conn, String sqlCommand) {
         try {
             Statement statement = conn.createStatement();
             statement.executeQuery(sqlCommand);
-        } catch(SQLException e) {
-            LOGGER.error("Statement对象创建失败",e);
+        } catch (SQLException e) {
+            LOGGER.error("Statement对象创建失败", e);
             e.printStackTrace();
         }
+    }
 
+    public static void main(String[] args) throws SQLException {
+        exportData();
     }
 
 }

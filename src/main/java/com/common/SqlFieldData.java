@@ -3,14 +3,8 @@ package com.common;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.sql.Connection;
-import java.sql.DatabaseMetaData;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.sql.*;
+import java.util.*;
 
 
 public class SqlFieldData {
@@ -23,79 +17,35 @@ public class SqlFieldData {
      * 获取表单列数据
      * @return
      */
-    public static List getTableInfo() {
-        List result = new ArrayList();
+    public static Map<String, String> getTableInfo() {
 
-        Connection conn = null;
-        DatabaseMetaData dbmd = null;
+        Map<String,String> columnNameMap = new LinkedHashMap<String, String>();
 
+        Connection conn = ConnectionMySQL.openConnection();
+        String sql = "SELECT * FROM " + TABLENAME;
+        PreparedStatement statement;
         try {
-            conn = ConnectionMySQL.openConnection();
-
-            dbmd = conn.getMetaData();
-            ResultSet resultSet = dbmd.getTables(null, "%", TABLENAME, new String[] { "TABLE" });
-
-            while (resultSet.next()) {
-                String tableName=resultSet.getString("TABLE_NAME");
-                System.out.println(tableName);
-
-                if(tableName.equals(TABLENAME)){
-                    ResultSet rs = conn.getMetaData().getColumns(null, getSchema(conn),tableName.toUpperCase(), "%");
-
-                    while(rs.next()){
-                        Map map = new HashMap();
-                        String colName = rs.getString("COLUMN_NAME");
-                        map.put("code", colName);
-
-                        String remarks = rs.getString("REMARKS");
-                        if(remarks == null || remarks.equals("")){
-                            remarks = colName;
-                        }
-                        map.put("name",remarks);
-
-                        String dbType = rs.getString("TYPE_NAME");
-                        map.put("dbType",dbType);
-
-                        //map.put("valueType", changeDbType(dbType));
-                        result.add(map);
-                    }
+            statement = conn.prepareStatement(sql);
+            ResultSet resutlSet = statement.executeQuery();
+            ResultSetMetaData data = resutlSet.getMetaData();
+            while(resutlSet.next()) {
+                for(int i = 1; i<=data.getColumnCount(); i++) {
+//                    int columnCount = data.getColumnCount();
+                    String columnName = data.getColumnName(i);
+//                    String columnValue = resutlSet.getString(i);
+//                    int columnType = data.getColumnType(i);
+                    String columnTypeName = data.getColumnTypeName(i);
+                    columnNameMap.put(columnName, columnTypeName);
                 }
+                break;
             }
         } catch (SQLException e) {
-            LOGGER.error("sql发生错误", e);
+            LOGGER.error("sql语句查询失败",e);
             e.printStackTrace();
-        } catch (Exception e) {
-            LOGGER.error("其他异常错误", e);
-            e.printStackTrace();
-        }finally{
-            try {
-                conn.close();
-            } catch (SQLException e) {
-                LOGGER.error("数据库连接关闭异常", e);
-                e.printStackTrace();
-            }
         }
-        return result;
-
+        return columnNameMap;
     }
 
-    /**
-     * oracle和db2的getSchema方法
-     * @param conn
-     * @return
-     * @throws Exception
-     */
-    private static String getSchema(Connection conn) throws Exception {
-
-        String schema;
-        schema = conn.getMetaData().getUserName();
-        if ((schema == null) || (schema.length() == 0)) {
-            throw new Exception("ORACLE数据库模式不允许为空");
-        }
-        return schema.toUpperCase().toString();
-
-    }
-    /
 
 
 }
